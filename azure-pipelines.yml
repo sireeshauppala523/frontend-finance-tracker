@@ -1,0 +1,103 @@
+trigger:
+- main
+
+pr:
+- main
+
+variables:
+  vmImageName: ubuntu-latest
+  nodeVersion: 20.x
+  azureServiceConnection: CHANGE_ME_AZURE_SERVICE_CONNECTION
+  acrName: CHANGE_ME_ACR_NAME
+  frontendImageRepository: frontend-finance-tracker
+  frontendWebAppName: CHANGE_ME_FRONTEND_WEB_APP
+  frontendResourceGroup: CHANGE_ME_FRONTEND_RESOURCE_GROUP
+  frontendApiUrl: https://CHANGE_ME_BACKEND_WEB_APP.azurewebsites.net/api
+
+stages:
+- stage: Build
+  displayName: Build frontend
+  jobs:
+  - job: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: $(nodeVersion)
+
+    - script: npm ci
+      workingDirectory: $(Build.SourcesDirectory)/frontend-finance-tracker
+      displayName: Install frontend dependencies
+
+    - script: npm run build
+      workingDirectory: $(Build.SourcesDirectory)/frontend-finance-tracker
+      displayName: Build frontend
+      env:
+        VITE_API_URL: $(frontendApiUrl)
+
+- stage: ContainerizeAndDeploy
+  displayName: Build frontend Podman image and deploy
+  dependsOn: Build
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  jobs:
+  - job: BuildPushImage
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: AzureCLI@2
+      displayName: Install Podman
+      inputs:
+        azureSubscription: $(azureServiceConnection)
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+          podman --version
+
+    - task: AzureCLI@2
+      displayName: Login to ACR with Podman
+      inputs:
+        azureSubscription: $(azureServiceConnection)
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          TOKEN=$(az acr login --name $(acrName) --expose-token --output tsv --query accessToken)
+          podman login $(acrName).azurecr.io -u 00000000-0000-0000-0000-000000000000 -p $TOKEN
+
+    - task: AzureCLI@2
+      displayName: Build and push frontend image
+      inputs:
+        azureSubscription: $(azureServiceConnection)
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          podman build -f frontend-finance-tracker/Containerfile --build-arg VITE_API_URL=$(frontendApiUrl) -t $(acrName).azurecr.io/$(frontendImageRepository):$(Build.BuildId) frontend-finance-tracker
+          podman push $(acrName).azurecr.io/$(frontendImageRepository):$(Build.BuildId)
+
+  - deployment: DeployFrontend
+    displayName: Deploy frontend container
+    environment: devtest-frontend
+    dependsOn: BuildPushImage
+    pool:
+      vmImage: $(vmImageName)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureAppServiceSettings@1
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              appName: $(frontendWebAppName)
+              resourceGroupName: $(frontendResourceGroup)
+              appSettings: |
+                [
+                  {"name":"WEBSITES_PORT","value":"8080","slotSetting":false}
+                ]
+
+          - task: AzureWebAppContainer@1
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              appName: $(frontendWebAppName)
+              containers: $(acrName).azurecr.io/$(frontendImageRepository):$(Build.BuildId)
