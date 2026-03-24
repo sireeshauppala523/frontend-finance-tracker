@@ -7,6 +7,8 @@ import type {
   CategorySpendPoint,
   DashboardSummary,
   GoalItem,
+  ForecastDailyPoint,
+  ForecastMonth,
   IncomeExpensePoint,
   RecurringItem,
   TransactionItem,
@@ -14,6 +16,16 @@ import type {
 
 export async function getDashboardSummary() {
   const response = await api.get<ApiResponse<DashboardSummary>>("/dashboard/summary");
+  return response.data.data;
+}
+
+export async function getForecastMonth() {
+  const response = await api.get<ApiResponse<ForecastMonth>>("/forecast/month");
+  return response.data.data;
+}
+
+export async function getForecastDaily() {
+  const response = await api.get<ApiResponse<ForecastDailyPoint[]>>("/forecast/daily");
   return response.data.data;
 }
 

@@ -93,13 +93,13 @@ export function LoginPage() {
     try {
       const data = mode === "login"
         ? await login({ email, password })
-        : await register({ displayName: displayName.trim(), email: email.trim(), password });
+        : await register({ displayName: displayName.trim(), email: email.trim(), password, preferredCurrency });
 
       setSession(data.accessToken, data.refreshToken, {
         displayName: data.displayName,
         email: data.email,
-        avatarUrl: null,
-        preferredCurrency: mode === "register" ? preferredCurrency : undefined,
+        avatarUrl: data.avatarUrl ?? null,
+        preferredCurrency: data.preferredCurrency ?? (mode === "register" ? preferredCurrency : "INR"),
       });
       navigate("/dashboard");
     } catch (err: unknown) {

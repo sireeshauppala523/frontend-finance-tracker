@@ -1,18 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
-import { CategorySpendChart, IncomeExpenseTrendChart } from "../components/charts/FinanceCharts";
+import { CategorySpendChart, ForecastBalanceChart, IncomeExpenseTrendChart } from "../components/charts/FinanceCharts";
 import { PageHeader } from "../components/ui/PageHeader";
 import { useAuthStore } from "../store/authStore";
-import { getCategorySpend, getDashboardSummary, getIncomeVsExpense } from "../services/finance";
+import { getCategorySpend, getDashboardSummary, getForecastDaily, getForecastMonth, getIncomeVsExpense } from "../services/finance";
 import { formatCurrency, formatDate, toMonthLabel } from "../utils/format";
 
 export function DashboardPage() {
   const user = useAuthStore((state) => state.user);
   const summaryQuery = useQuery({ queryKey: ["dashboard-summary"], queryFn: getDashboardSummary });
+  const forecastMonthQuery = useQuery({ queryKey: ["forecast-month"], queryFn: getForecastMonth });
+  const forecastDailyQuery = useQuery({ queryKey: ["forecast-daily"], queryFn: getForecastDaily });
   const categorySpendQuery = useQuery({ queryKey: ["category-spend", "dashboard"], queryFn: () => getCategorySpend() });
   const incomeExpenseQuery = useQuery({ queryKey: ["income-expense", "dashboard"], queryFn: () => getIncomeVsExpense() });
 
   const summary = summaryQuery.data;
+  const forecastMonth = forecastMonthQuery.data;
   const categoryData = categorySpendQuery.data ?? [];
+  const forecastDailyData = (forecastDailyQuery.data ?? []).map((item) => ({
+    label: new Date(item.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }),
+    balance: item.balance,
+  }));
   const groupedTrend = Object.values((incomeExpenseQuery.data ?? []).reduce<Record<string, { label: string; income: number; expense: number }>>((acc, item) => {
     const key = `${item.year}-${item.month}`;
     if (!acc[key]) {
@@ -50,6 +57,71 @@ export function DashboardPage() {
             <p>{card.detail}</p>
           </article>
         ))}
+      </div>
+
+      <div className="two-column dashboard-forecast-grid">
+        <div className="panel forecast-panel">
+          <div className="section-title">Cash flow forecast</div>
+          {forecastMonthQuery.isLoading ? <div className="status-banner">Building forecast...</div> : null}
+          {forecastMonth ? (
+            <div className="forecast-stack">
+              <div className="forecast-hero">
+                <div>
+                  <span className="forecast-label">Projected month-end balance</span>
+                  <strong>{formatCurrency(forecastMonth.forecastedEndBalance)}</strong>
+                </div>
+                <span className={`pill ${forecastMonth.forecastedEndBalance < 0 ? "amber" : "green"}`}>
+                  {forecastMonth.forecastedEndBalance < 0 ? "Risk" : "Stable"}
+                </span>
+              </div>
+
+              <div className="forecast-metrics">
+                <article className="forecast-metric">
+                  <span>Current balance</span>
+                  <strong>{formatCurrency(forecastMonth.currentBalance)}</strong>
+                </article>
+                <article className="forecast-metric">
+                  <span>Safe to spend / day</span>
+                  <strong>{formatCurrency(forecastMonth.safeToSpendPerDay)}</strong>
+                </article>
+                <article className="forecast-metric">
+                  <span>Projected income</span>
+                  <strong>{formatCurrency(forecastMonth.projectedIncome)}</strong>
+                </article>
+                <article className="forecast-metric">
+                  <span>Projected expense</span>
+                  <strong>{formatCurrency(forecastMonth.projectedExpense)}</strong>
+                </article>
+              </div>
+
+              <div className="forecast-alerts">
+                {forecastMonth.warnings.map((warning) => (
+                  <div className={`forecast-alert ${warning.toLowerCase().includes("negative") || warning.toLowerCase().includes("low") ? "risk" : "calm"}`} key={warning}>
+                    {warning}
+                  </div>
+                ))}
+              </div>
+
+              <div className="list">
+                <div className="section-title">Upcoming known expenses</div>
+                {forecastMonth.upcomingKnownExpenses.slice(0, 4).map((item) => (
+                  <div className="list-row" key={`${item.title}-${item.date}`}>
+                    <div>
+                      <strong>{item.title}</strong>
+                      <p>{formatDate(item.date)}</p>
+                    </div>
+                    <span className="pill amber">{formatCurrency(item.amount)}</span>
+                  </div>
+                ))}
+                {forecastMonth.upcomingKnownExpenses.length === 0 ? (
+                  <div className="empty-state">No upcoming recurring expenses are scheduled for the rest of this month.</div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <ForecastBalanceChart data={forecastDailyData} />
       </div>
 
       <div className="two-column">

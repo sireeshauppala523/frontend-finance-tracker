@@ -12,6 +12,8 @@ export type AuthResponse = {
   expiresAt: string;
   displayName: string;
   email: string;
+  avatarUrl?: string | null;
+  preferredCurrency?: SupportedCurrency;
 };
 
 export type AuthUser = {
@@ -19,6 +21,13 @@ export type AuthUser = {
   email: string;
   avatarUrl?: string | null;
   preferredCurrency?: SupportedCurrency;
+};
+
+export type ProfileResponse = {
+  displayName: string;
+  email: string;
+  avatarUrl?: string | null;
+  preferredCurrency: SupportedCurrency;
 };
 
 export type Category = {
@@ -105,6 +114,29 @@ export type DashboardSummary = {
   }>;
   upcomingRecurringPayments: RecurringItem[];
   goals: GoalItem[];
+};
+
+export type ForecastMonth = {
+  currentBalance: number;
+  forecastedEndBalance: number;
+  projectedIncome: number;
+  projectedExpense: number;
+  safeToSpendPerDay: number;
+  daysRemaining: number;
+  warnings: string[];
+  upcomingKnownExpenses: Array<{
+    title: string;
+    amount: number;
+    date: string;
+    source: string;
+  }>;
+};
+
+export type ForecastDailyPoint = {
+  date: string;
+  balance: number;
+  income: number;
+  expense: number;
 };
 
 export type CategorySpendPoint = {
