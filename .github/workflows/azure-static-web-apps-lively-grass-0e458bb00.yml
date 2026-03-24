@@ -46,8 +46,6 @@ jobs:
           output_location: "dist"
           app_build_command: "npm install && npm run build"
           github_id_token: ${{ steps.idtoken.outputs.result }}
-        env:
-          VITE_API_URL: https://finance-tracker-b8ezhde9ajfwdfct.centralindia-01.azurewebsites.net/api
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'

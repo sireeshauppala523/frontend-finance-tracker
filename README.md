@@ -13,11 +13,11 @@ React + TypeScript frontend for the Personal Finance Tracker application.
 
 ## Main files
 
-- [package.json](d:/personalFinanceTracker/frontend-finance-tracker/package.json)
-- [api.ts](d:/personalFinanceTracker/frontend-finance-tracker/src/services/api.ts)
-- [global.css](d:/personalFinanceTracker/frontend-finance-tracker/src/styles/global.css)
-- [Containerfile](d:/personalFinanceTracker/frontend-finance-tracker/Containerfile)
-- [nginx.conf](d:/personalFinanceTracker/frontend-finance-tracker/nginx.conf)
+- [package.json](d:/pft/frontend-finance-tracker/package.json)
+- [api.ts](d:/pft/frontend-finance-tracker/src/services/api.ts)
+- [global.css](d:/pft/frontend-finance-tracker/src/styles/global.css)
+- [Containerfile](d:/pft/frontend-finance-tracker/Containerfile)
+- [nginx.conf](d:/pft/frontend-finance-tracker/nginx.conf)
 
 ## Local run
 
@@ -35,17 +35,24 @@ Vite dev server:
 
 Local example file:
 
-- [`.env.example`](d:/personalFinanceTracker/frontend-finance-tracker/.env.example)
+- [`.env.example`](d:/pft/frontend-finance-tracker/.env.example)
+- [`.env.development`](d:/pft/frontend-finance-tracker/.env.development)
 
 Production example file:
 
-- [`.env.production.example`](d:/personalFinanceTracker/frontend-finance-tracker/.env.production.example)
+- [`.env.production.example`](d:/pft/frontend-finance-tracker/.env.production.example)
+- [`.env.production`](d:/pft/frontend-finance-tracker/.env.production)
 
 Main variable:
 
 - `VITE_API_URL=https://YOUR_BACKEND_HOST/api`
 
-The frontend currently falls back to localhost in [api.ts](d:/personalFinanceTracker/frontend-finance-tracker/src/services/api.ts) if `VITE_API_URL` is not provided.
+The project now keeps its API base URL in the frontend env files:
+
+- development: `http://localhost:5000/api`
+- production: deployed Azure backend URL in [`.env.production`](d:/pft/frontend-finance-tracker/.env.production)
+
+The frontend still falls back to localhost in [api.ts](d:/pft/frontend-finance-tracker/src/services/api.ts) if `VITE_API_URL` is not provided.
 
 ## Build
 
@@ -76,7 +83,7 @@ Run locally:
 podman run --rm -p 8080:8080 frontend-finance-tracker:local
 ```
 
-The frontend container serves the built SPA through Nginx on port `8080` and uses [nginx.conf](d:/personalFinanceTracker/frontend-finance-tracker/nginx.conf) for SPA routing.
+The frontend container serves the built SPA through Nginx on port `8080` and uses [nginx.conf](d:/pft/frontend-finance-tracker/nginx.conf) for SPA routing.
 
 ## Azure deployment notes
 
@@ -85,9 +92,9 @@ For Azure Web App for Containers:
 - build the image with the correct `VITE_API_URL`
 - set `WEBSITES_PORT=8080` on the frontend app service
 
-The current shared Azure pipeline already does that through:
+The Azure pipeline now builds from the checked-in frontend env files instead of injecting the API URL directly in the workflow:
 
-- [azure-pipelines.yml](d:/personalFinanceTracker/frontend-finance-tracker/azure-pipelines.yml)
+- [azure-pipelines.yml](d:/pft/frontend-finance-tracker/azure-pipelines.yml)
 
 ## Project notes
 
