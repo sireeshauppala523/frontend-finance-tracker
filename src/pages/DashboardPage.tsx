@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { CategorySpendChart, ForecastBalanceChart, IncomeExpenseTrendChart } from "../components/charts/FinanceCharts";
 import { PageHeader } from "../components/ui/PageHeader";
 import { useAuthStore } from "../store/authStore";
-import { getCategorySpend, getDashboardSummary, getForecastDaily, getForecastMonth, getIncomeVsExpense } from "../services/finance";
+import { getCategorySpend, getDashboardSummary, getForecastDaily, getForecastMonth, getHealthScore, getIncomeVsExpense } from "../services/finance";
 import { formatCurrency, formatDate, toMonthLabel } from "../utils/format";
 
 export function DashboardPage() {
@@ -10,6 +11,7 @@ export function DashboardPage() {
   const summaryQuery = useQuery({ queryKey: ["dashboard-summary"], queryFn: getDashboardSummary });
   const forecastMonthQuery = useQuery({ queryKey: ["forecast-month"], queryFn: getForecastMonth });
   const forecastDailyQuery = useQuery({ queryKey: ["forecast-daily"], queryFn: getForecastDaily });
+  const healthScoreQuery = useQuery({ queryKey: ["health-score", "dashboard"], queryFn: getHealthScore });
   const categorySpendQuery = useQuery({ queryKey: ["category-spend", "dashboard"], queryFn: () => getCategorySpend() });
   const incomeExpenseQuery = useQuery({ queryKey: ["income-expense", "dashboard"], queryFn: () => getIncomeVsExpense() });
 
@@ -29,6 +31,7 @@ export function DashboardPage() {
     if (item.type === "expense") acc[key].expense = item.amount;
     return acc;
   }, {}));
+  const health = healthScoreQuery.data;
 
   const cards = [
     { label: "Net Balance", amount: formatCurrency(summary?.netBalance ?? 0), accent: "primary", detail: "Across current month activity" },
@@ -57,6 +60,36 @@ export function DashboardPage() {
             <p>{card.detail}</p>
           </article>
         ))}
+      </div>
+
+      <div className="panel health-score-panel">
+        <div className="panel-heading">
+          <div>
+            <div className="section-title">Financial health score</div>
+            <p className="panel-subtitle">{health?.summary ?? "Calculating a server-backed health score from your current finances."}</p>
+          </div>
+          <div className={`score-orb score-${health?.band.toLowerCase() ?? "healthy"}`}>{health?.score ?? "--"}</div>
+        </div>
+
+        <div className="factor-grid">
+          {(health?.factors ?? []).map((factor) => (
+            <article className="factor-card" key={factor.key}>
+              <div className="factor-row">
+                <strong>{factor.label}</strong>
+                <span>{factor.score}/100</span>
+              </div>
+              <div className="progress-track">
+                <div className={`progress-fill ${factor.score < 60 ? "danger" : ""}`} style={{ width: `${factor.score}%` }} />
+              </div>
+              <p>{factor.note}</p>
+            </article>
+          ))}
+        </div>
+
+        <div className="inline-links">
+          <Link className="text-link" to="/insights">Open detailed insights</Link>
+          <Link className="text-link" to="/rules">Review automation rules</Link>
+        </div>
       </div>
 
       <div className="two-column dashboard-forecast-grid">

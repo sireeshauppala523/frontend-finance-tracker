@@ -3,6 +3,9 @@ import { AppShell } from "../components/layout/AppShell";
 import { ToastCenter } from "../components/ui/ToastCenter";
 import { LoginPage } from "../pages/LoginPage";
 import { DashboardPage } from "../pages/DashboardPage";
+import { InsightsPage } from "../pages/InsightsPage";
+import { RulesPage } from "../pages/RulesPage";
+import { SharedAccountsPage } from "../pages/SharedAccountsPage";
 import { TransactionsPage } from "../pages/TransactionsPage";
 import { BudgetsPage } from "../pages/BudgetsPage";
 import { GoalsPage } from "../pages/GoalsPage";
@@ -28,6 +31,9 @@ export function App() {
         <Route element={<ProtectedLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/insights" element={<InsightsPage />} />
+          <Route path="/rules" element={<RulesPage />} />
+          <Route path="/shared-accounts" element={<SharedAccountsPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/goals" element={<GoalsPage />} />

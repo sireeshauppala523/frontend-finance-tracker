@@ -20,6 +20,7 @@ export function RecurringPage() {
   const accountsQuery = useQuery({ queryKey: ["accounts"], queryFn: getAccounts });
   const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: getCategories });
   const recurringQuery = useQuery({ queryKey: ["recurring"], queryFn: getRecurring });
+  const editableAccounts = (accountsQuery.data ?? []).filter((item) => item.accessRole !== "viewer");
 
   const createMutation = useMutation({
     mutationFn: createRecurring,
@@ -90,7 +91,7 @@ export function RecurringPage() {
         <input type="number" min="0.01" step="0.01" placeholder="Amount" value={amount} onChange={(event) => setAmount(event.target.value)} required />
         <select value={accountId} onChange={(event) => setAccountId(event.target.value)} required>
           <option value="">Select account</option>
-          {(accountsQuery.data ?? []).map((item) => (
+          {editableAccounts.map((item) => (
             <option key={item.id} value={item.id}>{item.name}</option>
           ))}
         </select>

@@ -47,6 +47,8 @@ export type Account = {
   openingBalance: number;
   currentBalance: number;
   institutionName?: string | null;
+  accessRole?: "owner" | "editor" | "viewer";
+  isShared?: boolean;
 };
 
 export type TransactionItem = {
@@ -64,6 +66,7 @@ export type TransactionItem = {
 
 export type BudgetItem = {
   id: string;
+  accountId?: string | null;
   month: number;
   year: number;
   amount: number;
@@ -71,6 +74,7 @@ export type BudgetItem = {
   spent: number;
   progress: number;
   category: Category;
+  account?: Account | null;
 };
 
 export type GoalItem = {
@@ -149,4 +153,57 @@ export type IncomeExpensePoint = {
   month: number;
   type: string;
   amount: number;
+};
+
+export type RuleCondition = {
+  field: "merchant" | "amount" | "category";
+  operator: "equals" | "contains" | "greaterThan" | "lessThan";
+  value: string;
+};
+
+export type RuleAction = {
+  type: "categorize" | "tag" | "alert";
+  value: string;
+};
+
+export type AutomationRule = {
+  id: string;
+  name: string;
+  condition: RuleCondition;
+  action: RuleAction;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SharedAccountMember = {
+  id: string;
+  accountId: string;
+  userId: string;
+  displayName: string;
+  email: string;
+  role: "owner" | "editor" | "viewer";
+  createdAt: string;
+};
+
+export type SharedAccountGroup = {
+  accountId: string;
+  accountName: string;
+  owner: boolean;
+  members: SharedAccountMember[];
+};
+
+export type HealthFactor = {
+  key: string;
+  label: string;
+  score: number;
+  note: string;
+};
+
+export type FinancialHealthSnapshot = {
+  score: number;
+  band: "Excellent" | "Healthy" | "Fair" | "Watch";
+  summary: string;
+  suggestions: string[];
+  factors: HealthFactor[];
 };

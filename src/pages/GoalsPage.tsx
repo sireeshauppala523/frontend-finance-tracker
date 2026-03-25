@@ -35,6 +35,7 @@ export function GoalsPage() {
 
   const accountsQuery = useQuery({ queryKey: ["accounts"], queryFn: getAccounts });
   const goalsQuery = useQuery({ queryKey: ["goals"], queryFn: getGoals });
+  const editableAccounts = (accountsQuery.data ?? []).filter((item) => item.accessRole !== "viewer");
 
   const createMutation = useMutation({
     mutationFn: createGoal,
@@ -192,7 +193,7 @@ export function GoalsPage() {
         <input type="date" value={form.targetDate} min={toIsoDate(new Date())} onChange={(event) => setForm({ ...form, targetDate: event.target.value })} />
         <select value={form.linkedAccountId} onChange={(event) => setForm({ ...form, linkedAccountId: event.target.value })}>
           <option value="">No linked account</option>
-          {(accountsQuery.data ?? []).map((item) => (
+          {editableAccounts.map((item) => (
             <option key={item.id} value={item.id}>{item.name}</option>
           ))}
         </select>

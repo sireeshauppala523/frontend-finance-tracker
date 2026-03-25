@@ -1,16 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { getPreferredCurrency, getUserProfile, saveUserProfile, setAuthSession } from "./storage";
+import { getPreferredCurrency, getStoredUser, setAuthSession } from "./storage";
 
 describe("storage helpers", () => {
-  it("stores profile data by normalized email", () => {
-    saveUserProfile("User@Example.com", {
+  it("stores the signed-in user for the current session", () => {
+    setAuthSession("access", "refresh", {
+      email: "user@example.com",
       displayName: "User",
       preferredCurrency: "EUR",
+      avatarUrl: null,
     });
 
-    expect(getUserProfile("user@example.com")).toEqual({
+    expect(getStoredUser()).toEqual({
+      email: "user@example.com",
       displayName: "User",
       preferredCurrency: "EUR",
+      avatarUrl: null,
     });
   });
 

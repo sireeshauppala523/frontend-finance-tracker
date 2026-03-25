@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "../components/ui/PageHeader";
-import { createBudget, getBudgets, getCategories } from "../services/finance";
+import { createBudget, getAccounts, getBudgets, getCategories } from "../services/finance";
 import { useUiStore } from "../store/uiStore";
 import { getErrorMessage } from "../utils/errors";
 
@@ -28,10 +28,12 @@ export function BudgetsPage() {
   const showToast = useUiStore((state) => state.showToast);
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [year, setYear] = useState(today.getFullYear());
+  const [accountId, setAccountId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [amount, setAmount] = useState("");
   const [threshold, setThreshold] = useState("80");
 
+  const accountsQuery = useQuery({ queryKey: ["accounts", "budgets"], queryFn: getAccounts });
   const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: getCategories });
   const budgetsQuery = useQuery({ queryKey: ["budgets", month, year], queryFn: () => getBudgets(month, year) });
 
@@ -40,6 +42,7 @@ export function BudgetsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets", month, year] });
       setAmount("");
+      setAccountId("");
       setCategoryId("");
       showToast("Budget saved successfully.");
     },
@@ -56,6 +59,11 @@ export function BudgetsPage() {
       return;
     }
 
+    if (!accountId) {
+      showToast("Please select an account for this budget.", "error");
+      return;
+    }
+
     if (!amount || Number(amount) <= 0) {
       showToast("Please enter a budget amount greater than 0.", "error");
       return;
@@ -68,6 +76,7 @@ export function BudgetsPage() {
 
     createMutation.mutate({
       categoryId,
+      accountId,
       month,
       year,
       amount: Number(amount),
@@ -76,6 +85,7 @@ export function BudgetsPage() {
   }
 
   const expenseCategories = (categoriesQuery.data ?? []).filter((item) => item.type === "expense");
+  const editableAccounts = (accountsQuery.data ?? []).filter((item) => item.accessRole !== "viewer");
 
   return (
     <section className="stack-lg">
@@ -83,6 +93,12 @@ export function BudgetsPage() {
 
       <form className="panel form-grid" onSubmit={handleSubmit}>
         <div className="section-title">Set budget</div>
+        <select value={accountId} onChange={(event) => setAccountId(event.target.value)} required>
+          <option value="">Select account</option>
+          {editableAccounts.map((item) => (
+            <option key={item.id} value={item.id}>{item.name}</option>
+          ))}
+        </select>
         <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} required>
           <option value="">Select category</option>
           {expenseCategories.map((item) => (
@@ -109,6 +125,7 @@ export function BudgetsPage() {
           <button className="primary-button" type="submit" disabled={createMutation.isPending}>{createMutation.isPending ? "Saving..." : "Save Budget"}</button>
         </div>
       </form>
+      {editableAccounts.length === 0 ? <div className="empty-state">You need owner or editor access on an account before you can create a budget.</div> : null}
 
       <div className="panel stack-md">
         {(budgetsQuery.data ?? []).map((budget) => {
@@ -117,6 +134,7 @@ export function BudgetsPage() {
             <div className="budget-row" key={budget.id}>
               <div className="budget-copy">
                 <strong>{budget.category?.name ?? "Category"}</strong>
+                <span>{budget.account?.name ?? "All eligible accounts"}</span>
                 <span>{budget.spent.toFixed(2)} / {budget.amount.toFixed(2)}</span>
               </div>
               <div className="progress-track">

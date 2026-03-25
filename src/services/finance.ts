@@ -6,11 +6,15 @@ import type {
   Category,
   CategorySpendPoint,
   DashboardSummary,
+  FinancialHealthSnapshot,
   GoalItem,
   ForecastDailyPoint,
   ForecastMonth,
   IncomeExpensePoint,
   RecurringItem,
+  AutomationRule,
+  SharedAccountGroup,
+  SharedAccountMember,
   TransactionItem,
 } from "../types/api";
 
@@ -26,6 +30,11 @@ export async function getForecastMonth() {
 
 export async function getForecastDaily() {
   const response = await api.get<ApiResponse<ForecastDailyPoint[]>>("/forecast/daily");
+  return response.data.data;
+}
+
+export async function getHealthScore() {
+  const response = await api.get<ApiResponse<FinancialHealthSnapshot>>("/insights/health-score");
   return response.data.data;
 }
 
@@ -144,7 +153,7 @@ export async function getBudgets(month: number, year: number) {
   return response.data.data;
 }
 
-export async function createBudget(payload: { categoryId: string; month: number; year: number; amount: number; alertThresholdPercent: number }) {
+export async function createBudget(payload: { categoryId: string; accountId?: string | null; month: number; year: number; amount: number; alertThresholdPercent: number }) {
   const response = await api.post<ApiResponse<BudgetItem>>("/budgets", payload);
   return response.data.data;
 }
@@ -226,4 +235,51 @@ export async function getIncomeVsExpense(from?: string, to?: string) {
 export async function getAccountBalanceTrend() {
   const response = await api.get<ApiResponse<Array<{ name: string; currentBalance: number; lastUpdatedAt: string }>>>("/reports/account-balance-trend");
   return response.data.data;
+}
+
+export async function getRules() {
+  const response = await api.get<ApiResponse<AutomationRule[]>>("/rules");
+  return response.data.data;
+}
+
+export async function createRule(payload: {
+  name: string;
+  condition: AutomationRule["condition"];
+  action: AutomationRule["action"];
+  isActive: boolean;
+}) {
+  const response = await api.post<ApiResponse<AutomationRule>>("/rules", payload);
+  return response.data.data;
+}
+
+export async function updateRule(ruleId: string, payload: {
+  name: string;
+  condition: AutomationRule["condition"];
+  action: AutomationRule["action"];
+  isActive: boolean;
+}) {
+  const response = await api.put<ApiResponse<AutomationRule>>(`/rules/${ruleId}`, payload);
+  return response.data.data;
+}
+
+export async function deleteRule(ruleId: string) {
+  await api.delete(`/rules/${ruleId}`);
+}
+
+export async function getSharedAccounts() {
+  const response = await api.get<ApiResponse<SharedAccountGroup[]>>("/shared-accounts");
+  return response.data.data;
+}
+
+export async function addSharedAccountMember(payload: {
+  accountId: string;
+  email: string;
+  role: SharedAccountMember["role"];
+}) {
+  const response = await api.post<ApiResponse<SharedAccountMember>>("/shared-accounts/members", payload);
+  return response.data.data;
+}
+
+export async function removeSharedAccountMember(memberId: string) {
+  await api.delete(`/shared-accounts/members/${memberId}`);
 }

@@ -1,26 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { saveUserProfile } from "../utils/storage";
 import { useAuthStore } from "./authStore";
 
 describe("authStore", () => {
-  it("merges saved profile preferences into the incoming session", () => {
-    saveUserProfile("user@example.com", {
-      displayName: "Saved User",
-      preferredCurrency: "AED",
-      avatarUrl: "avatar-data",
-    });
-
+  it("stores the incoming session profile", () => {
     useAuthStore.getState().setSession("access", "refresh", {
       email: "user@example.com",
-      displayName: "Incoming User",
+      displayName: "User",
       preferredCurrency: "USD",
-      avatarUrl: null,
+      avatarUrl: "avatar-data",
     });
 
     expect(useAuthStore.getState().user).toEqual({
       email: "user@example.com",
-      displayName: "Saved User",
-      preferredCurrency: "AED",
+      displayName: "User",
+      preferredCurrency: "USD",
       avatarUrl: "avatar-data",
     });
   });

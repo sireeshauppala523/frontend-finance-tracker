@@ -6,6 +6,9 @@ import { UserAvatar } from "../ui/UserAvatar";
 
 const navigation = [
   ["Dashboard", "/dashboard"],
+  ["Insights", "/insights"],
+  ["Rules", "/rules"],
+  ["Shared", "/shared-accounts"],
   ["Transactions", "/transactions"],
   ["Budgets", "/budgets"],
   ["Goals", "/goals"],
@@ -81,6 +84,10 @@ export function AppShell() {
 
           <div className="topbar-actions app-topbar-actions">
             <button className="primary-button desktop-action" onClick={() => navigate("/transactions")}>Add Transaction</button>
+            <button className="user-chip desktop-user-chip" type="button" onClick={handleOpenSettings}>
+              <UserAvatar user={user} size={38} />
+              <span>{user?.displayName ?? "Profile"}</span>
+            </button>
             <button className="topbar-logout-icon" type="button" aria-label="Log out" title="Log Out" onClick={handleLogout}>
               <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M14 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
