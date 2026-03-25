@@ -2025,10 +2025,18 @@ textarea {
   background: rgba(248, 250, 252, 0.92);
 }
 
+.factor-card .factor-row {
+  margin-bottom: 10px;
+}
+
+.factor-card .progress-track {
+  margin-bottom: 12px;
+}
+
 .factor-card p,
 .insight-card span,
 .feature-link-card p {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   color: var(--muted);
 }
 

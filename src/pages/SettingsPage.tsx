@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "../components/ui/PageHeader";
 import { UserAvatar } from "../components/ui/UserAvatar";
 import { getProfile, updateProfileRequest } from "../services/profile";
@@ -16,6 +16,7 @@ const currencyOptions: Array<{ value: SupportedCurrency; label: string }> = [
 ];
 
 export function SettingsPage() {
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { user, updateProfile, logout } = useAuthStore();
   const showToast = useUiStore((state) => state.showToast);
@@ -26,17 +27,17 @@ export function SettingsPage() {
 
   useEffect(() => {
     const profile = profileQuery.data;
-    setDisplayName(profile?.displayName ?? user?.displayName ?? "");
-    setPreferredCurrency(profile?.preferredCurrency ?? user?.preferredCurrency ?? "INR");
-    setAvatarUrl(profile?.avatarUrl ?? user?.avatarUrl ?? null);
-    if (profile) {
-      updateProfile({
-        displayName: profile.displayName,
-        preferredCurrency: profile.preferredCurrency,
-        avatarUrl: profile.avatarUrl ?? null,
-      });
-    }
-  }, [profileQuery.data, updateProfile, user?.avatarUrl, user?.displayName, user?.preferredCurrency]);
+    if (!profile) return;
+
+    setDisplayName(profile.displayName);
+    setPreferredCurrency(profile.preferredCurrency);
+    setAvatarUrl(profile.avatarUrl ?? null);
+    updateProfile({
+      displayName: profile.displayName,
+      preferredCurrency: profile.preferredCurrency,
+      avatarUrl: profile.avatarUrl ?? null,
+    });
+  }, [profileQuery.data, updateProfile]);
 
   async function handleSave() {
     if (!displayName.trim()) {
@@ -55,6 +56,7 @@ export function SettingsPage() {
         preferredCurrency: profile.preferredCurrency,
         avatarUrl: profile.avatarUrl ?? null,
       });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
       showToast("Changes saved successfully.");
     } catch {
       showToast("Unable to save changes right now.", "error");
@@ -70,6 +72,11 @@ export function SettingsPage() {
     if (!file) return;
     if (file.size > 750 * 1024) {
       showToast("Please choose an image smaller than 750 KB.", "error");
+      event.target.value = "";
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      showToast("Please choose a valid image file.", "error");
       event.target.value = "";
       return;
     }
@@ -94,12 +101,12 @@ export function SettingsPage() {
 
       <div className="panel profile-panel">
         <div className="profile-header">
-          <button className="settings-avatar-button" type="button" onClick={handleAvatarClick} aria-label={user?.avatarUrl ? "Edit profile image" : "Upload profile image"}>
+          <button className="settings-avatar-button" type="button" onClick={handleAvatarClick} aria-label={avatarUrl ? "Edit profile image" : "Upload profile image"}>
             <UserAvatar user={user ? { ...user, avatarUrl } : user} size={104} />
             <span className="settings-avatar-overlay">{avatarUrl ? "Edit image" : "Upload image"}</span>
           </button>
           <div className="profile-meta">
-            <strong className="profile-name">{user?.displayName ?? "Profile"}</strong>
+            <strong className="profile-name">{displayName || user?.displayName || "Profile"}</strong>
             <p className="profile-email">{user?.email ?? ""}</p>
           </div>
         </div>
