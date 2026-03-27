@@ -217,7 +217,7 @@ export function RulesPage() {
               <p>If {rule.condition.field} {rule.condition.operator} "{rule.condition.value}" then {rule.action.type} "{rule.action.value}"</p>
               <p>{preview}</p>
             </div>
-            <div className="list-actions">
+            <div className="list-actions rule-list-actions">
               <span className={`pill ${matched ? "green" : "amber"}`}>{matched ? "Matched" : "Idle"}</span>
               <button className="secondary-button rule-action-button" type="button" onClick={() => toggleRule(rule)} disabled={updateMutation.isPending}>
                 {rule.isActive ? "Pause" : "Activate"}

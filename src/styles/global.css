@@ -2121,6 +2121,10 @@ textarea {
     grid-template-columns: 1fr;
   }
 
+  .rule-list-actions {
+    width: 100%;
+  }
+
   .rule-action-button {
     width: 100%;
     justify-content: center;
