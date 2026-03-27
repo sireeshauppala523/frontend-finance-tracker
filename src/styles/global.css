@@ -2095,6 +2095,13 @@ textarea {
   background: #edf3fb;
 }
 
+.rule-field-helper {
+  margin: -8px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .list-actions {
   justify-content: flex-end;
   flex-wrap: wrap;
@@ -2112,5 +2119,10 @@ textarea {
   .insight-grid,
   .feature-link-grid {
     grid-template-columns: 1fr;
+  }
+
+  .rule-action-button {
+    width: 100%;
+    justify-content: center;
   }
 }

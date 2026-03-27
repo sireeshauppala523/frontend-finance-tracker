@@ -19,6 +19,21 @@ const operatorOptions: Record<AutomationRule["condition"]["field"], AutomationRu
   amount: ["greaterThan", "lessThan", "equals"],
 };
 
+const actionValueGuidance: Record<AutomationRule["action"]["type"], { placeholder: string; helper: string }> = {
+  categorize: {
+    placeholder: "Transport",
+    helper: 'Enter the category name to assign when the rule matches, for example "Transport".',
+  },
+  tag: {
+    placeholder: "monthly-food",
+    helper: 'Enter a tag label to add when the rule matches, for example "monthly-food".',
+  },
+  alert: {
+    placeholder: "High-value expense needs review",
+    helper: "Enter the alert message that should be shown when the rule matches.",
+  },
+};
+
 export function RulesPage() {
   const queryClient = useQueryClient();
   const showToast = useUiStore((state) => state.showToast);
@@ -33,6 +48,7 @@ export function RulesPage() {
   const summaryQuery = useQuery({ queryKey: ["dashboard-summary", "rules"], queryFn: getDashboardSummary });
   const categorySpendQuery = useQuery({ queryKey: ["category-spend", "rules"], queryFn: () => getCategorySpend() });
   const availableOperators = operatorOptions[field];
+  const actionInputCopy = actionValueGuidance[actionType];
 
   useEffect(() => {
     if (!availableOperators.includes(operator)) {
@@ -183,7 +199,10 @@ export function RulesPage() {
           <option value="tag">Add tag</option>
           <option value="alert">Trigger alert</option>
         </select>
-        <input placeholder="Action value" value={actionValue} onChange={(event) => setActionValue(event.target.value)} />
+        <div className="stack-md">
+          <input placeholder={actionInputCopy.placeholder} value={actionValue} onChange={(event) => setActionValue(event.target.value)} />
+          <p className="rule-field-helper">{actionInputCopy.helper}</p>
+        </div>
         <div className="form-actions">
           <button className="primary-button" type="submit" disabled={createMutation.isPending}>{createMutation.isPending ? "Saving..." : "Save Rule"}</button>
         </div>
@@ -200,10 +219,10 @@ export function RulesPage() {
             </div>
             <div className="list-actions">
               <span className={`pill ${matched ? "green" : "amber"}`}>{matched ? "Matched" : "Idle"}</span>
-              <button className="secondary-button" type="button" onClick={() => toggleRule(rule)} disabled={updateMutation.isPending}>
+              <button className="secondary-button rule-action-button" type="button" onClick={() => toggleRule(rule)} disabled={updateMutation.isPending}>
                 {rule.isActive ? "Pause" : "Activate"}
               </button>
-              <button className="secondary-button" type="button" onClick={() => deleteMutation.mutate(rule.id)} disabled={deleteMutation.isPending}>
+              <button className="secondary-button rule-action-button" type="button" onClick={() => deleteMutation.mutate(rule.id)} disabled={deleteMutation.isPending}>
                 Delete
               </button>
             </div>
