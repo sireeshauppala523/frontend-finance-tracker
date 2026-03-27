@@ -178,7 +178,7 @@ export function RulesPage() {
         </div>
       </div>
 
-      <form className="panel form-grid" onSubmit={handleSubmit}>
+      <form className="panel form-grid rules-form" onSubmit={handleSubmit}>
         <div className="section-title">Create automation rule</div>
         <input placeholder="Rule name" value={name} onChange={(event) => setName(event.target.value)} />
         <select value={field} onChange={(event) => setField(event.target.value as AutomationRule["condition"]["field"])}>
@@ -199,7 +199,7 @@ export function RulesPage() {
           <option value="tag">Add tag</option>
           <option value="alert">Trigger alert</option>
         </select>
-        <div className="stack-md">
+        <div className="stack-md rules-action-value">
           <input placeholder={actionInputCopy.placeholder} value={actionValue} onChange={(event) => setActionValue(event.target.value)} />
           <p className="rule-field-helper">{actionInputCopy.helper}</p>
         </div>

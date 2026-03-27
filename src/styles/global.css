@@ -2095,6 +2095,14 @@ textarea {
   background: #edf3fb;
 }
 
+.rules-form {
+  align-items: start;
+}
+
+.rules-action-value {
+  align-self: start;
+}
+
 .rule-field-helper {
   margin: -8px 0 0;
   color: var(--muted);
